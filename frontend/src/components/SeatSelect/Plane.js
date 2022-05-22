@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useContext } from "react";
 import styled from "styled-components";
 
-const Plane = ({}) => {
-  const [seating, setSeating] = useState([]);
+import { FlightContext } from "../FlightContext";
 
+const Plane = () => {
+  // const [seating, setSeating] = useState([]);
+  const { flight, setSeat, seating, setSeating } = useContext(FlightContext);
   useEffect(() => {
-    // TODO: get seating data for selected flight
-  }, []);
+    fetch(`/api/get-flight?flightNumber=${flight}`)
+      .then((res) => res.json())
+      .then((data) => setSeating(data.seats));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flight]);
 
   return (
     <Wrapper>
@@ -16,7 +21,13 @@ const Plane = ({}) => {
             <label>
               {seat.isAvailable ? (
                 <>
-                  <Seat type="radio" name="seat" onChange={() => {}} />
+                  <Seat
+                    type="radio"
+                    name="seat"
+                    onChange={() => {
+                      setSeat(seat.id);
+                    }}
+                  />
                   <Available>{seat.id}</Available>
                 </>
               ) : (
