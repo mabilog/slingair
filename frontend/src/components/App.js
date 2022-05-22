@@ -16,7 +16,10 @@ const App = () => {
           <Route exact path="/">
             <SeatSelect />
           </Route>
-          <Route exact path="/confirmed">
+          <Route path="/confirmed">
+            <Confirmation />
+          </Route>
+          <Route path="/view-reservation">
             <Confirmation />
           </Route>
           <Route path="">404: Oops!</Route>

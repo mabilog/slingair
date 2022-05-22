@@ -8,25 +8,24 @@ import FormSelect from "./FormSelect";
 import Plane from "./Plane";
 
 const SeatSelect = () => {
-  // const [flights, setFlights] = useState([]);
-  // const [flight, setFlight] = useState();
-  // const [seat, setSeat] = useState();
-  const { setFlights } = useContext(FlightContext);
+  const { setFlights, reset } = useContext(FlightContext);
 
   useEffect(() => {
     fetch("/api/get-flights")
       .then((res) => res.json())
       .then((data) => setFlights(data.flights));
+
+    // reset everything to default settings on load homepage
+    reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
       <FlightForm>
-        {/* <FlightSelect setFlight={setFlight} flights={flights} /> */}
         <FlightSelect />
       </FlightForm>
-      <h2>Select your seat and Provide your information!</h2>
+      <TextWrapper>Select your seat and Provide your information!</TextWrapper>
       <FlightReservationWrapper>
         <Plane />
         <FormSelect />
@@ -35,12 +34,14 @@ const SeatSelect = () => {
   );
 };
 
+const TextWrapper = styled.h2`
+  padding-top: 20px;
+`;
 const FlightForm = styled.div`
   display: flex;
   align-items: center;
   background-color: var(--color-cadmium-red);
   width: 100%;
-  height: 50px;
 `;
 
 const FlightReservationWrapper = styled.div`

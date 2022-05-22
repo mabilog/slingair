@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const FlightContext = createContext("");
 
@@ -16,6 +16,22 @@ const FlightProvider = ({ children }) => {
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [reservation, setReservation] = useState({});
+
+  const reset = () => {
+    setGivenName("");
+    setSurname("");
+    setEmail("");
+    setFlight();
+    setSeat();
+  };
+  useEffect(() => {
+    if (localStorage.getItem("reservation") !== undefined)
+      setReservation(JSON.parse(localStorage.getItem("reservation")));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("reservation", JSON.stringify(reservation));
+  }, [reservation]);
 
   return (
     <FlightContext.Provider
@@ -36,6 +52,7 @@ const FlightProvider = ({ children }) => {
         setEmail,
         reservation,
         setReservation,
+        reset,
       }}
     >
       {children}

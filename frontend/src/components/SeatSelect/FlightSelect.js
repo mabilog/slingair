@@ -1,10 +1,12 @@
 import { useContext } from "react";
+import styled from "styled-components";
 import { FlightContext } from "../FlightContext";
 
 const FlightSelect = () => {
   const { setFlight, flights } = useContext(FlightContext);
   return (
-    <form method="GET">
+    <FormWrapper method="GET">
+      <label>Flight Number: </label>
       <select
         onChange={(e) => setFlight(e.target.value)}
         defaultValue="Select a flight"
@@ -18,8 +20,14 @@ const FlightSelect = () => {
           </option>
         ))}
       </select>
-    </form>
+    </FormWrapper>
   );
 };
 
+const FormWrapper = styled.form`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 20px;
+`;
 export default FlightSelect;

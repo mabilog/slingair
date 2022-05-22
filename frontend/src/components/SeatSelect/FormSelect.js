@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 
 import styled from "styled-components";
@@ -19,6 +19,7 @@ const FormSelect = () => {
   } = useContext(FlightContext);
 
   const history = useHistory();
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const postBody = { flight, seat, givenName, surname, email };
@@ -33,6 +34,9 @@ const FormSelect = () => {
       .then((data) => setReservation(data.flightDetails))
       .then(() => history.push("/confirmed"));
   };
+  useEffect(() => {
+    console.log(seat);
+  }, [seat]);
 
   return (
     <FormWrapper method="POST" onSubmit={(e) => handleFormSubmit(e)}>
@@ -54,7 +58,17 @@ const FormSelect = () => {
         placeholder="e-mail"
         onChange={(e) => setEmail(e.target.value)}
       />
-      <button type="submit">submit</button>
+      <button
+        type="submit"
+        disabled={
+          givenName === "" ||
+          surname === "" ||
+          email === "" ||
+          seat === undefined
+        }
+      >
+        Confirm
+      </button>
     </FormWrapper>
   );
 };
@@ -62,6 +76,19 @@ const FormSelect = () => {
 const FormWrapper = styled.form`
   display: flex;
   flex-direction: column;
+  width: 400px;
+  gap: 5px;
+  padding: 30px;
+  border: solid 2px var(--color-alabama-crimson);
+  button {
+    background-color: var(--color-alabama-crimson);
+    border: none;
+    cursor: pointer;
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
 `;
 
 export default FormSelect;

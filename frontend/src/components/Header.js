@@ -1,21 +1,31 @@
+import { useContext } from "react";
+
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import { NavLink, useHistory } from "react-router-dom";
 
 import slingairLogo from "../assets/logo_text.png";
 
-const Header = () => (
-  <Wrapper>
-    <Logo>
-      <h1>Sling Airlines</h1>
-    </Logo>
-    <Nav>
-      {/* TODO: only show link if the user has a reservation already */}
-      <>
-        <StyledNavLink to="/view-reservation">Reservation</StyledNavLink>
-      </>
-    </Nav>
-  </Wrapper>
-);
+import { FlightContext } from "./FlightContext";
+
+const Header = () => {
+  const history = useHistory();
+  const { reservation } = useContext(FlightContext);
+
+  return (
+    <Wrapper>
+      <Logo onClick={() => history.push("/")}>
+        <h1> Sling Airlines</h1>
+      </Logo>
+      <Nav>
+        {reservation ? (
+          <StyledNavLink to="/view-reservation">Reservation</StyledNavLink>
+        ) : null}
+        {/* TODO: only show link if the user has a reservation already */}
+        {/* <></> */}
+      </Nav>
+    </Wrapper>
+  );
+};
 
 const Wrapper = styled.header`
   display: flex;
@@ -33,6 +43,7 @@ const Logo = styled.div`
   text-indent: -1000px;
   height: 60px;
   width: 550px;
+  cursor: pointer;
 `;
 const Nav = styled.nav`
   display: flex;
