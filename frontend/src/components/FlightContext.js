@@ -24,6 +24,7 @@ const FlightProvider = ({ children }) => {
     setFlight();
     setSeat();
   };
+
   useEffect(() => {
     if (localStorage.getItem("reservation") !== undefined)
       setReservation(JSON.parse(localStorage.getItem("reservation")));
