@@ -31,6 +31,7 @@ const FormSelect = () => {
       body: JSON.stringify(postBody),
     })
       .then((res) => res.json())
+      // .then((data) => console.log(data));
       .then((data) => setReservation(data.flightDetails))
       .then(() => history.push("/confirmed"));
   };

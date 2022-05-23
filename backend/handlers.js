@@ -6,35 +6,102 @@ const { v4: uuidv4 } = require("uuid");
 // use this data. Changes will persist until the server (backend) restarts.
 const { flights, reservations } = require("./data");
 
-const getFlights = (req, res) => {
-  res.status(201).json({ status: 201, flights: Object.keys(flights) });
+const getFlights = async (req, res) => {
+  try {
+    await flights;
+    res.status(201).json({
+      status: 201,
+      flights: Object.keys(flights),
+      message: "Flights data successfully provided",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({
+      status: 400,
+      message: "Something went wrong getting flights",
+      errorMessage: err,
+    });
+  }
 };
 
-const getFlight = (req, res) => {
-  const flightNum = req.query.flightNumber.toUpperCase();
-  const seats = flights[flightNum];
-  res.status(201).json({
-    status: 201,
-    seats,
-  });
+const getFlight = async (req, res) => {
+  try {
+    const flightNum = req.query.flightNumber.toUpperCase();
+    const seats = await flights[flightNum];
+    res.status(201).json({
+      status: 201,
+      seats,
+      message: "Flight Seats successfully provided",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({
+      status: 400,
+      message: "Something went wrong getting flight",
+      errprMessage: err,
+    });
+  }
 };
 
-const addReservation = (req, res) => {
-  const flightDetails = {
-    id: uuidv4(),
-    ...req.body,
-  };
-  reservations.push({ ...flightDetails });
-  res.status(201).json({ status: 201, flightDetails: flightDetails });
+const addReservation = async (req, res) => {
+  // console.log(
+  //   Object.keys(flights).filter((flight) => {
+  //     if (flight === req.body.flight) return;
+  //   })
+  // );
+
+  try {
+    const flightDetails = {
+      id: uuidv4(),
+      ...req.body,
+    };
+    await reservations.push({ ...flightDetails });
+    res
+      .status(201)
+      .json({ status: 201, flightDetails: flightDetails, reservations });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({
+      status: 400,
+      message: "Something went wrong while adding reservation",
+      errorMessage: err,
+    });
+  }
 };
 
-const getReservations = (req, res) => {
-  res.status(201).json({ status: 201, flights: Object.keys(reservations) });
+const getReservations = async (req, res) => {
+  try {
+    await reservations;
+    res
+      .status(201)
+      .json({ status: 201, flights: Object.keys(reservations), reservations });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({
+      status: 400,
+      message: "Something went wrong while getting reservations",
+      errorMessage: err,
+    });
+  }
 };
 
-const getSingleReservation = (req, res) => {};
+const getSingleReservation = async (req, res) => {
+  try {
+    const requestedReservation = await reservations.filter(
+      (res) => res.id === req.query.id
+    );
+    res.status(200).json({ status: 200, requestedReservation });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({
+      status: 400,
+      message: "Something went wrong while getting a reservation",
+      errorMessage: err,
+    });
+  }
+};
 
-const deleteReservation = (req, res) => {};
+const deleteReservation = async (req, res) => {};
 
 const updateReservation = (req, res) => {};
 
