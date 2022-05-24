@@ -37,6 +37,7 @@ const batchImport = async () => {
     // });
 
     // await db.collection("flights").insertMany(flightMap)
+
     flightNumber.forEach(async (flightNum) => {
       await db.collection("flights").insertOne({
         // _id: `${flightNum}`,
