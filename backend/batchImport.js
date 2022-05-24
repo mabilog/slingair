@@ -32,19 +32,19 @@ const batchImport = async () => {
     console.log("Inserting flights into flights collection");
     const flightNumber = Object.keys(flights);
 
-    // const flightMap = flightNumber.map((flightNum) => {
-    //   return { flight: `${flightNum}`, seats: flights[flightNum] };
-    // });
-
-    // await db.collection("flights").insertMany(flightMap)
-
-    flightNumber.forEach(async (flightNum) => {
-      await db.collection("flights").insertOne({
-        // _id: `${flightNum}`,
-        flight: `${flightNum}`,
-        seats: flights[flightNum],
-      });
+    const flightMap = flightNumber.map((flightNum) => {
+      return { flight: `${flightNum}`, seats: flights[flightNum] };
     });
+
+    await db.collection("flights").insertMany(flightMap);
+
+    // flightNumber.forEach(async (flightNum) => {
+    //   await db.collection("flights").insertOne({
+    //     // _id: `${flightNum}`,
+    //     flight: `${flightNum}`,
+    //     seats: flights[flightNum],
+    //   });
+    // });
 
     console.log(await db.collection("flights").find().toArray());
 
