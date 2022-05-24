@@ -23,6 +23,7 @@ const FormSelect = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const postBody = { flight, seat, givenName, surname, email };
+
     fetch("/api/add-reservation", {
       method: "POST",
       headers: {
@@ -35,6 +36,7 @@ const FormSelect = () => {
       .then((data) => setReservation(data.flightDetails))
       .then(() => history.push("/confirmed"));
   };
+
   useEffect(() => {
     console.log(seat);
   }, [seat]);
