@@ -9,10 +9,11 @@ const options = {
 };
 // use this package to generate unique ids: https://www.npmjs.com/package/uuid
 const { v4: uuidv4 } = require("uuid");
-const { flights } = require("./data");
+// const { flights } = require("./data");
 
 // use this data. Changes will persist until the server (backend) restarts.
-// const { flights: flightsData, reservations } = require("./data");
+// const { flights, reservations } = require("./data");
+// const { reservations } = require("./data");
 
 const getFlights = async (req, res) => {
   try {
@@ -48,24 +49,32 @@ const getFlights = async (req, res) => {
 
 const getFlight = async (req, res) => {
   try {
-    const flightRequest = req.query.flightNumber.toUpperCase();
+    const flightNumber = req.query.flightNumber.toUpperCase();
     const client = new MongoClient(MONGO_URI, options);
     await client.connect();
 
     const db = await client.db("slingair");
 
     const flights = await db.collection("flights").find().toArray();
+
+    let seats = [];
+    flights.forEach((plane) => {
+      if (plane.flight === flightNumber) seats = plane.seats;
+    });
+
+    res.status(201).json({
+      status: 201,
+      seats,
+      message: "Flight Seats successfully provided from database",
+    });
+
+    // working
     // const seats = await flights[flightRequest];
     // res.status(201).json({
     //   status: 201,
     //   seats,
     //   message: "Flight Seats successfully provided",
     // });
-    res.status(201).json({
-      status: 201,
-      flights,
-      message: "Flight Seats successfully provided from database",
-    });
   } catch (err) {
     console.error(err);
     res.status(400).json({
@@ -78,21 +87,52 @@ const getFlight = async (req, res) => {
 
 const addReservation = async (req, res) => {
   try {
-    // setting seat.isAvailble to false
-    flights[req.body.flight].forEach((seat) => {
-      if (seat.id === req.body.seat) seat.isAvailable = false;
-    });
+    // console.log(body);
+    const client = new MongoClient(MONGO_URI, options);
+    await client.connect();
+
+    const db = client.db("slingair");
+
     const flightDetails = {
       id: uuidv4(),
       ...req.body,
     };
-    await reservations.push({ ...flightDetails });
+
+    const bookSeat = await db
+      .collection("flights")
+      .updateOne(
+        { flight: req.body.flight, "seats.id": req.body.seat },
+        { $set: { "seats.$.isAvailable": false } }
+      );
+    console.log(bookSeat);
+    // modifiedCount : # updated
+    if (bookSeat.modifiedCount !== 0) {
+      const reservationConfirmation = await db
+        .collection("reservations")
+        .insertOne(flightDetails);
+    }
+
+    // setting seat.isAvailble to false
+    // flights[req.body.flight].forEach((seat) => {
+    //   if (seat.id === req.body.seat) seat.isAvailable = false;
+    // });
+    // const flightDetails = {
+    //   id: uuidv4(),
+    //   ...req.body,
+    // };
+    // await reservations.push({ ...flightDetails });
+    // res.status(201).json({
+    //   status: 201,
+    //   flightDetails: flightDetails,
+    //   reservations,
+    //   message: "Successfully added new reservation to reservations array",
+    // });
     res.status(201).json({
       status: 201,
-      flightDetails: flightDetails,
-      reservations,
-      message: "Successfully added new reservation to reservations array",
+      body,
+      message: "doing something",
     });
+    client.close();
   } catch (err) {
     console.error(err);
     res.status(400).json({
@@ -105,13 +145,21 @@ const addReservation = async (req, res) => {
 
 const getReservations = async (req, res) => {
   try {
-    await reservations;
+    const client = new MongoClient(MONGO_URI, options);
+    await client.connect();
+
+    const db = await client.db("slingair");
+
+    const reservations = await db.collection("reservations").find().toArray();
+    console.log(reservations);
+
+    // await reservations;
     res.status(201).json({
       status: 201,
-      flights: Object.keys(reservations),
       reservations,
       message: "Successfully received all reservations",
     });
+    client.close();
   } catch (err) {
     console.error(err);
     res.status(400).json({

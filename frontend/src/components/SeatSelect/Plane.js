@@ -28,7 +28,7 @@ const Plane = () => {
                     onChange={() => {
                       setSeat(seat.id);
                     }}
-                    checked={seat.id === seat}
+                    // checked={seat.id === seat}s
                   />
                   <Available>{seat.id}</Available>
                 </>
