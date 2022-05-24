@@ -1,19 +1,41 @@
 "use strict";
+const { MongoClient } = require("mongodb");
 
+require("dotenv").config();
+const { MONGO_URI } = process.env;
+const options = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
 // use this package to generate unique ids: https://www.npmjs.com/package/uuid
 const { v4: uuidv4 } = require("uuid");
+const { flights } = require("./data");
 
 // use this data. Changes will persist until the server (backend) restarts.
-const { flights, reservations } = require("./data");
+// const { flights: flightsData, reservations } = require("./data");
 
 const getFlights = async (req, res) => {
   try {
-    await flights;
+    const client = new MongoClient(MONGO_URI, options);
+    await client.connect();
+
+    const db = await client.db("slingair");
+
+    const flights = await db.collection("flights").find().toArray();
+    const flightNumbers = flights.map((flight) => flight.flight);
+    // console.log(flightNumbers);
+
     res.status(201).json({
       status: 201,
-      flights: Object.keys(flights),
-      message: "Flights data successfully provided",
+      flights: flightNumbers,
+      message: "Flights data successfully provided from the database",
     });
+    // await flights;
+    // res.status(201).json({
+    //   status: 201,
+    //   flights: Object.keys(flightsData),
+    //   message: "Flights data successfully provided",
+    // });
   } catch (err) {
     console.error(err);
     res.status(400).json({
@@ -26,12 +48,23 @@ const getFlights = async (req, res) => {
 
 const getFlight = async (req, res) => {
   try {
-    const flightNum = req.query.flightNumber.toUpperCase();
-    const seats = await flights[flightNum];
+    const flightRequest = req.query.flightNumber.toUpperCase();
+    const client = new MongoClient(MONGO_URI, options);
+    await client.connect();
+
+    const db = await client.db("slingair");
+
+    const flights = await db.collection("flights").find().toArray();
+    // const seats = await flights[flightRequest];
+    // res.status(201).json({
+    //   status: 201,
+    //   seats,
+    //   message: "Flight Seats successfully provided",
+    // });
     res.status(201).json({
       status: 201,
-      seats,
-      message: "Flight Seats successfully provided",
+      flights,
+      message: "Flight Seats successfully provided from database",
     });
   } catch (err) {
     console.error(err);
