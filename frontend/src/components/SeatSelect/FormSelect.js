@@ -81,6 +81,7 @@ const FormWrapper = styled.form`
   gap: 5px;
   padding: 30px;
   border: solid 2px var(--color-alabama-crimson);
+  border-radius: 3px;
   button {
     background-color: var(--color-alabama-crimson);
     border: none;
