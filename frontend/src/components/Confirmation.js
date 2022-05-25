@@ -1,18 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useContext } from "react";
 import styled from "styled-components";
 
+import { FlightContext } from "./FlightContext";
 import tombstone from "../assets/tombstone.png";
 
 const Confirmation = () => {
-  const [reserve, setReserve] = useState({});
+  const { reservationId, reservation, setReservation } =
+    useContext(FlightContext);
 
   useEffect(() => {
-    setReserve(JSON.parse(localStorage.getItem("reservation")));
+    fetch(`/api/get-reservation?reservationId=${reservationId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setReservation(data.reservation);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Wrapper>
-      {reserve ? (
+      {reservation ? (
         <>
           <ConfirmationWrapper>
             <ConfirmWrapper>
@@ -20,20 +27,20 @@ const Confirmation = () => {
               <hr />
               <ul>
                 <li>
-                  <strong>Reservation #:</strong> {reserve.id}
+                  <strong>Reservation #:</strong> {reservation.id}
                 </li>
                 <li>
-                  <strong>Flight #:</strong> {reserve.flight}
+                  <strong>Flight #:</strong> {reservation.flight}
                 </li>
                 <li>
-                  <strong>seat #:</strong> {reserve.seat}
+                  <strong>seat #:</strong> {reservation.seat}
                 </li>
                 <li>
                   <strong>Name :</strong>{" "}
-                  {reserve.givenName + " " + reserve.surname}
+                  {reservation.givenName + " " + reservation.surname}
                 </li>
                 <li>
-                  <strong>Email :</strong> {reserve.email}
+                  <strong>Email :</strong> {reservation.email}
                 </li>
               </ul>
             </ConfirmWrapper>

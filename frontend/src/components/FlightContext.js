@@ -15,6 +15,8 @@ const FlightProvider = ({ children }) => {
   const [givenName, setGivenName] = useState("");
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
+  const [reservationId, setReservationId] = useState({});
+
   const [reservation, setReservation] = useState({});
 
   const reset = () => {
@@ -26,13 +28,13 @@ const FlightProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("reservation") !== undefined)
-      setReservation(JSON.parse(localStorage.getItem("reservation")));
+    if (localStorage.getItem("reservationId") !== undefined)
+      setReservationId(JSON.parse(localStorage.getItem("reservationId")));
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("reservation", JSON.stringify(reservation));
-  }, [reservation]);
+    localStorage.setItem("reservationId", JSON.stringify(reservationId));
+  }, [reservationId]);
 
   return (
     <FlightContext.Provider
@@ -51,6 +53,8 @@ const FlightProvider = ({ children }) => {
         setSurname,
         email,
         setEmail,
+        reservationId,
+        setReservationId,
         reservation,
         setReservation,
         reset,

@@ -143,7 +143,7 @@ const getSingleReservation = async (req, res) => {
       .db("slingair")
       .collection("reservations")
       .findOne({ id: req.query.reservationId });
-
+    console.log(reservation);
     res.status(200).json({
       status: 200,
       reservation,

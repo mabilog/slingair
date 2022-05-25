@@ -15,7 +15,7 @@ const FormSelect = () => {
     setSurname,
     email,
     setEmail,
-    setReservation,
+    setReservationId,
   } = useContext(FlightContext);
 
   const history = useHistory();
@@ -33,7 +33,7 @@ const FormSelect = () => {
     })
       .then((res) => res.json())
       // .then((data) => console.log(data));
-      .then((data) => setReservation(data.flightDetails))
+      .then((data) => setReservationId(data.flightDetails.id))
       .then(() => history.push("/confirmed"))
       .catch((err) => console.log(err));
   };
