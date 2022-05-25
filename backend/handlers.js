@@ -200,6 +200,10 @@ const deleteReservation = async (req, res) => {
 };
 
 const updateReservation = async (req, res) => {
+  /*
+    receive old seat, new seat, reservationId, 
+
+  */
   try {
     console.log(req.body);
   } catch (err) {}
