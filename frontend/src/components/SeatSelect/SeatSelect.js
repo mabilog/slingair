@@ -13,9 +13,11 @@ const SeatSelect = () => {
   useEffect(() => {
     fetch("/api/get-flights")
       .then((res) => res.json())
-      .then((data) => setFlights(data.flights));
+      .then((data) => setFlights(data.flights))
+      .catch((err) => console.log(err));
 
     // reset everything to default settings on load homepage
+    console.log("reseting...");
     reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

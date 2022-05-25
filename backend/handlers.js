@@ -7,6 +7,7 @@ const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 };
+
 // use this package to generate unique ids: https://www.npmjs.com/package/uuid
 const { v4: uuidv4 } = require("uuid");
 
@@ -68,6 +69,7 @@ const getFlight = async (req, res) => {
 
 const addReservation = async (req, res) => {
   try {
+    console.log(req.body);
     const client = new MongoClient(MONGO_URI, options);
     await client.connect();
 
@@ -85,13 +87,12 @@ const addReservation = async (req, res) => {
         { $set: { "seats.$.isAvailable": false } }
       );
 
-    if (bookSeat.matchedCount !== 1) throw new Error();
+    console.log(bookSeat);
 
     const reservationConfirmation = await db
       .collection("reservations")
       .insertOne(flightDetails);
-
-    if (!reservationConfirmation.acknowledged) throw new Error();
+    console.log(reservationConfirmation);
 
     res.status(201).json({
       status: 201,
@@ -171,7 +172,7 @@ const deleteReservation = async (req, res) => {
       .collection("reservations")
       .deleteOne({ id: reservationId });
 
-    if (result.deletedCount !== 1) throw new Error();
+    // if (result.deletedCount !== 1) throw new Error();
 
     const unbookSeat = await db
       .collection("flights")
@@ -180,7 +181,7 @@ const deleteReservation = async (req, res) => {
         { $set: { "seats.$.isAvailable": true } }
       );
 
-    if (unbookSeat.modifiedCount !== 1) throw new Error();
+    // if (unbookSeat.modifiedCount !== 1) throw new Error();
 
     const reservations = await db.collection("reservations").find().toArray();
     console.log(reservations);
@@ -200,13 +201,79 @@ const deleteReservation = async (req, res) => {
 };
 
 const updateReservation = async (req, res) => {
-  /*
-    receive old seat, new seat, reservationId, 
+  const { flight, newSeat, prevSeat, givenName, surname, email, id } = req.body;
+  console.log(req.body);
+  const client = new MongoClient(MONGO_URI, options);
+  await client.connect();
+  const db = client.db("slingair");
 
-  */
   try {
-    console.log(req.body);
-  } catch (err) {}
+    /*
+     release the old seat
+      1.  match the _id with req.body.flight, 
+          within seat of ^, find id with req.body.prevSeat,
+      2.  $set: that same seat.isAvailable to true
+    */
+
+    const seatRelease = await db
+      .collection("flights")
+      .updateOne(
+        { flight: flight, "seats.id": prevSeat },
+        { $set: { "seats.$.isAvailable": true } }
+      );
+
+    console.log(seatRelease);
+
+    /**
+     * booking new seat
+     * 1. match the _id with req.body.flight,
+     *    within seat of ^, find id with req.body.seat
+     * 2. $set: that same seat.isAvailable to false
+     */
+    const seatBook = await db
+      .collection("flights")
+      .updateOne(
+        { flight: flight, "seats.id": newSeat },
+        { $set: { "seats.$.isAvailable": false } }
+      );
+
+    console.log(seatBook);
+
+    if (seatRelease.modifiedCount === 1 && seatBook.modifiedCount === 1) {
+      const updateReservation = await db
+        .collection("reservations")
+        .updateOne(
+          { id },
+          { $set: { id, flight, seat: newSeat, givenName, surname, email } }
+        );
+
+      if (updateReservation.modifiedCount === 1) {
+        res.status(200).json({
+          status: 200,
+          message: "Successfully updated reservation",
+          updateReservation,
+        });
+      } else {
+        res.status(400).json({
+          status: 400,
+          message: "Something went wrong with updating the reservation",
+        });
+      }
+    } else {
+      res.status(400).json({
+        status: 400,
+        message: "Something went wrong with updating the reservation",
+      });
+    }
+
+    client.close();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      status: 500,
+      message: "Something went wrong with updating the reservation",
+    });
+  }
 };
 
 module.exports = {

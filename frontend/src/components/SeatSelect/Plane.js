@@ -5,35 +5,39 @@ import { FlightContext } from "../FlightContext";
 
 const Plane = () => {
   // const [seating, setSeating] = useState([]);
-  const { flight, setSeat, seating, setSeating } = useContext(FlightContext);
+  const { flight, setSeat, seating, setSeating, seat } =
+    useContext(FlightContext);
   useEffect(() => {
     if (flight)
       fetch(`/api/get-flight?flightNumber=${flight}`)
         .then((res) => res.json())
-        .then((data) => setSeating(data.seats));
+        .then((data) => setSeating(data.seats))
+        .catch((err) => console.log(err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flight]);
 
   return (
     <Wrapper>
       {seating && seating.length > 0 ? (
-        seating.map((seat) => (
-          <SeatWrapper key={`seat-${seat.id}`}>
+        seating.map((seatt) => (
+          <SeatWrapper key={`seat-${seatt.id}`}>
             <label>
-              {seat.isAvailable ? (
+              {seatt.isAvailable ? (
                 <>
                   <Seat
                     type="radio"
                     name="seat"
                     onChange={() => {
-                      setSeat(seat.id);
+                      setSeat(seatt.id);
                     }}
-                    // checked={seat.id === seat}s
                   />
-                  <Available>{seat.id}</Available>
+                  {/* <Available className={seat.id === seat ? "checked" : ""}> */}
+                  <Available className={seatt.id === seat ? "checked" : ""}>
+                    {seatt.id}
+                  </Available>
                 </>
               ) : (
-                <Unavailable>{seat.id}</Unavailable>
+                <Unavailable>{seatt.id}</Unavailable>
               )}
             </label>
           </SeatWrapper>

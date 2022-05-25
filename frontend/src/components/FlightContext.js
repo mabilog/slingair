@@ -21,7 +21,7 @@ const FlightProvider = ({ children }) => {
     setGivenName("");
     setSurname("");
     setEmail("");
-    setFlight();
+    setFlights();
     setSeat();
   };
 
