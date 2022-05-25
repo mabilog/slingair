@@ -7,10 +7,10 @@ const Plane = () => {
   // const [seating, setSeating] = useState([]);
   const { flight, setSeat, seating, setSeating } = useContext(FlightContext);
   useEffect(() => {
-    // if (flight)
-    fetch(`/api/get-flight?flightNumber=${flight}`)
-      .then((res) => res.json())
-      .then((data) => setSeating(data.seats));
+    if (flight)
+      fetch(`/api/get-flight?flightNumber=${flight}`)
+        .then((res) => res.json())
+        .then((data) => setSeating(data.seats));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flight]);
 

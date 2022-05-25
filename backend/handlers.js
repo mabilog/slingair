@@ -9,11 +9,6 @@ const options = {
 };
 // use this package to generate unique ids: https://www.npmjs.com/package/uuid
 const { v4: uuidv4 } = require("uuid");
-// const { flights } = require("./data");
-
-// use this data. Changes will persist until the server (backend) restarts.
-// const { flights, reservations } = require("./data");
-// const { reservations } = require("./data");
 
 const getFlights = async (req, res) => {
   try {
@@ -21,22 +16,14 @@ const getFlights = async (req, res) => {
     await client.connect();
 
     const db = await client.db("slingair");
-
-    const flights = await db.collection("flights").find().toArray();
-    const flightNumbers = flights.map((flight) => flight.flight);
-    // console.log(flightNumbers);
+    const flights = await db.collection("flights").distinct("flight");
 
     res.status(201).json({
       status: 201,
-      flights: flightNumbers,
+      flights,
       message: "Flights data successfully provided from the database",
     });
-    // await flights;
-    // res.status(201).json({
-    //   status: 201,
-    //   flights: Object.keys(flightsData),
-    //   message: "Flights data successfully provided",
-    // });
+    client.close();
   } catch (err) {
     console.error(err);
     res.status(400).json({
@@ -55,26 +42,20 @@ const getFlight = async (req, res) => {
 
     const db = await client.db("slingair");
 
-    const flights = await db.collection("flights").find().toArray();
+    const flight = await db
+      .collection("flights")
+      .findOne({ flight: flightNumber });
 
-    let seats = [];
-    flights.forEach((plane) => {
-      if (plane.flight === flightNumber) seats = plane.seats;
-    });
-
-    res.status(201).json({
-      status: 201,
-      seats,
-      message: "Flight Seats successfully provided from database",
-    });
-
-    // working
-    // const seats = await flights[flightRequest];
-    // res.status(201).json({
-    //   status: 201,
-    //   seats,
-    //   message: "Flight Seats successfully provided",
-    // });
+    flight.seats
+      ? res.status(201).json({
+          status: 201,
+          seats: flight.seats,
+          message: "Flight Seats successfully provided from database",
+        })
+      : res.status(201).json({
+          status: 201,
+          message: "Flight Seats successfully provided from database",
+        });
   } catch (err) {
     console.error(err);
     res.status(400).json({
@@ -87,7 +68,6 @@ const getFlight = async (req, res) => {
 
 const addReservation = async (req, res) => {
   try {
-    // console.log(body);
     const client = new MongoClient(MONGO_URI, options);
     await client.connect();
 
@@ -104,37 +84,23 @@ const addReservation = async (req, res) => {
         { flight: req.body.flight, "seats.id": req.body.seat },
         { $set: { "seats.$.isAvailable": false } }
       );
-    console.log(bookSeat);
-    // modifiedCount : # updated
-    if (bookSeat.modifiedCount !== 0) {
-      const reservationConfirmation = await db
-        .collection("reservations")
-        .insertOne(flightDetails);
-    }
 
-    // setting seat.isAvailble to false
-    // flights[req.body.flight].forEach((seat) => {
-    //   if (seat.id === req.body.seat) seat.isAvailable = false;
-    // });
-    // const flightDetails = {
-    //   id: uuidv4(),
-    //   ...req.body,
-    // };
-    // await reservations.push({ ...flightDetails });
-    // res.status(201).json({
-    //   status: 201,
-    //   flightDetails: flightDetails,
-    //   reservations,
-    //   message: "Successfully added new reservation to reservations array",
-    // });
+    if (bookSeat.matchedCount !== 1) throw new Error();
+
+    const reservationConfirmation = await db
+      .collection("reservations")
+      .insertOne(flightDetails);
+
+    if (!reservationConfirmation.acknowledged) throw new Error();
+
     res.status(201).json({
       status: 201,
-      body,
-      message: "doing something",
+      flightDetails,
+      message: "Successfully added new reservation to reservations array",
     });
     client.close();
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(400).json({
       status: 400,
       message: "Something went wrong while adding reservation",
@@ -151,9 +117,6 @@ const getReservations = async (req, res) => {
     const db = await client.db("slingair");
 
     const reservations = await db.collection("reservations").find().toArray();
-    console.log(reservations);
-
-    // await reservations;
     res.status(201).json({
       status: 201,
       reservations,
@@ -172,12 +135,17 @@ const getReservations = async (req, res) => {
 
 const getSingleReservation = async (req, res) => {
   try {
-    const requestedReservation = await reservations.filter(
-      (res) => res.id === req.query.id
-    );
+    const client = new MongoClient(MONGO_URI, options);
+    await client.connect();
+
+    const reservation = await client
+      .db("slingair")
+      .collection("reservations")
+      .findOne({ id: req.query.reservationId });
+
     res.status(200).json({
       status: 200,
-      requestedReservation,
+      reservation,
       message: "Successfully received single reservation",
     });
   } catch (err) {
@@ -192,23 +160,36 @@ const getSingleReservation = async (req, res) => {
 
 const deleteReservation = async (req, res) => {
   try {
-    const { id } = req.query;
-    await reservations.filter((reservation) => reservation.id !== id);
+    const { reservationId, seat, flight } = req.query;
+    console.log(req.query);
+    const client = new MongoClient(MONGO_URI, options);
+    await client.connect();
+    const db = client.db("slingair");
+    console.log("db connected");
+
+    const result = await db
+      .collection("reservations")
+      .deleteOne({ id: reservationId });
+
+    if (result.deletedCount !== 1) throw new Error();
+
+    const unbookSeat = await db
+      .collection("flights")
+      .updateOne(
+        { flight: flight, "seats.id": seat },
+        { $set: { "seats.$.isAvailable": true } }
+      );
+
+    if (unbookSeat.modifiedCount !== 1) throw new Error();
+
+    const reservations = await db.collection("reservations").find().toArray();
+    console.log(reservations);
+
     res.status(200).json({
       status: 200,
       message: "Something happened 🤷‍♂️",
-      reservations: await reservations,
+      reservations,
     });
-    // if(res.status(200).json({
-    //   status: 200,
-    //   message: "Successfully deleted reservation",
-    //   reservations,
-    // });
-    // res.status(404).json({
-    //   status: 404,
-    //   message: `No reservation id: ${id}`,
-    //   reservations,
-    // });
   } catch (err) {
     res.status(400).json({
       status: 400,
@@ -218,7 +199,11 @@ const deleteReservation = async (req, res) => {
   }
 };
 
-const updateReservation = (req, res) => {};
+const updateReservation = async (req, res) => {
+  try {
+    console.log(req.body);
+  } catch (err) {}
+};
 
 module.exports = {
   getFlights,
